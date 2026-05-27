@@ -14,3 +14,5 @@ router.post("/sign-in",validater({schemas:{
 router.get("/sign-out",signOutController)
 router.post("/refresh",refreshController)
 router.get("/me",meController)
+
+export default router

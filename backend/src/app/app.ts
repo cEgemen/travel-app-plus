@@ -3,6 +3,8 @@ import helmet from "helmet"
 import cors from "cors"
 import { apiResponse } from "@shared/responses/api.response"
 import { ApiError, STATUS_CODES } from "@shared/errors/api.errors"
+import { securePath } from "@shared/middlewares/securePath.middleware"
+import authRouter from "@modules/auth/auth.route"
 
 const app = express()
 
@@ -15,6 +17,7 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({extended : true}))
 
+app.use(securePath(["health"]))
 
 app.get("/health",(req,res,next) => {
     return res.status(200).json({
@@ -23,7 +26,7 @@ app.get("/health",(req,res,next) => {
     })
 })
 
-
+app.use("/api/auth",authRouter)
 
 app.use((req : Request,res : Response,next : NextFunction) => {
     return apiResponse(req,res,{
