@@ -1,10 +1,10 @@
 import { genSalt, hash , compare} from "bcryptjs"
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "@modules/auth/auth.utils"
 import { randomUUID } from "crypto"
+import { ApiError, STATUS_CODES } from "@shared/errors/api.errors"
 
 export const signInService = async (data : any) => {
 
-    try {
             /* 
                const isExist = prisma.users.findUnique({
                    where:{
@@ -14,7 +14,7 @@ export const signInService = async (data : any) => {
        
                if(isExist)
                {
-                 return res.status(400).json({status:400,message:"Email Already Exists",success:false}) 
+                 throw new ApiError("Email Already Exist",STATUS_CODES.BAD_REQUEST)
                }
                const salt = await genSalt(10);
                const hashedPassword = await hash(password, salt);
@@ -25,14 +25,9 @@ export const signInService = async (data : any) => {
                    }
                })
             */ 
-    } catch (error) {
-        console.log(" in signInService ->error ",error)
-        throw error   
-    }
 }
 
 export const signUpService = async (data : any) => {
-    try {
         
         /* 
            const isExist = prisma.users.findUnique({
@@ -43,12 +38,12 @@ export const signUpService = async (data : any) => {
 
            if(isExist)
            {
-             return {status:404,message:"User Not Found",success:false} 
+             throw new ApiError("User Already Exist",STATUS_CODES.BAD_REQUEST)
            }
            const comparePassword = await compare(data.password,isExist.password)
            if(!comparePassword)
            {
-            return {status:401,message:"Incorrect Password",success:false}
+            throw new ApiError("Incorrect Password",STATUS_CODES.UNAUTHORIZED)
            }
            
            const accessToken = generateAccessToken(isExist)
@@ -67,15 +62,9 @@ export const signUpService = async (data : any) => {
            }
           
         */
-
-    } catch (error) {
-        console.log(" in signUpService ->error ",error)
-        throw error
-    }
 }
 
 export const signOutService = async(data : any) => {
-    try {
         /* 
              const sessionId = data.sessionId
              const delSessionRes = await redis.del("session:"+sessionId)
@@ -85,33 +74,28 @@ export const signOutService = async(data : any) => {
              if(!delRefreshRes)
                console.log(" Refresh Token Not Found ")
         */
-    } catch (error) {
-        console.log(" in signOutService ->error ",error)
-        throw error
-    }
 }
 
 
 export const refreshService = (refreshTokenData:any) => {
-    try {
        if(!refreshTokenData)
-            throw Error("Refresh Token is not provided")
+            throw new ApiError("Refresh Token is not provided",STATUS_CODES.BAD_REQUEST)
          const isValidRefreshToken = verifyRefreshToken(refreshTokenData)
          if(!isValidRefreshToken)
-            throw Error("Invalid Refresh Token") 
+            throw new ApiError("Invalid Refresh Token",STATUS_CODES.BAD_REQUEST) 
 
          /* 
              const sessionId = isValidRefreshToken.sessionId 
              const sessionData = await redis.get("session:"+sessionId)
              if(!sessionData)
-                throw Error("Session Not Found")
+                throw new ApiError("Session Not Found",STATUS_CODES.BAD_REQUEST)
 
              if(sessionData.refreshToken !== refreshTokenData)
-                throw Error("Invalid Refresh Token")
+                throw new ApiError("Invalid Refresh Token",STATUS_CODES.BAD_REQUEST)
 
              const validRefresh = await redis.get("w-"+sessionId+":"+refreshTokenData)
              if(!validRefresh)
-                throw Error("Invalid Refresh Token")
+                throw new ApiError("Invalid Refresh Token",STATUS_CODES.BAD_REQUEST)
 
              const delLastSession = await redis.del("session:"+sessionId)
              if(delLastSession)
@@ -126,15 +110,9 @@ export const refreshService = (refreshTokenData:any) => {
              redis.set("session:"+newSessionId,{...},"EX",REDIS.SESSION_EXPIRES_IN)
              return {accessToken , refreshToken } 
          */
-
-    } catch (error) {
-        console.log(" in refreshService ->error ",error)
-        throw error
-    }
 }
 
 export const meService = (data : any) => {
-    try {
        /* 
           const isExist = prisma.users.findUnique({
              where  : {
@@ -147,8 +125,4 @@ export const meService = (data : any) => {
            }
           return isExist  
        */  
-    } catch (error) {
-        console.log(" in meService ->error ",error)
-        throw error
-    }
 }
