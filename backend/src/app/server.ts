@@ -1,47 +1,49 @@
-
 import app from "@app/app"
 import { createServer } from "http"
-
-const PORT = process.env.PORT ?? 3000
+import { connectRedis, disconnectRedis } from "@config/redis.config"
+import { connectDB, disconnectDB } from "@config/db.config"
+import { SYSTEM } from "@config/app.config"
 
 const server = createServer(app)
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-})
+async function bootstrap(): Promise<void> {
+    await connectDB()
+    await connectRedis()
+    server.listen(SYSTEM.port, () => {
+        process.stdout.write(`[Server] running on port ${SYSTEM.port}\n`)
+    })
+}
 
-server.on("error", (error: NodeJS.ErrnoException) => {
-    if (error.code === "EADDRINUSE") {
-        console.error(`Port ${PORT} is already in use`)
-    } else if (error.code === "EACCES") {
-        console.error(`Port ${PORT} requires elevated privileges`)
-    } else {
-        console.error("Server error:", error.message)
-    }
-    process.exit(1)
-})
-
-const shutdown = (signal: string) => {
-    console.log(`\n${signal} received. Shutting down gracefully...`)
-    server.close((err) => {
-        if (err) {
-            console.error("Error during shutdown:", err.message)
-            process.exit(1)
-        }
-        console.log("Server closed.")
+async function shutdown(signal: string): Promise<void> {
+    process.stdout.write(`\n[Server] ${signal} received. Shutting down...\n`)
+    server.close(async () => {
+        await disconnectRedis()
+        await disconnectDB()
         process.exit(0)
     })
 }
 
-process.on("SIGTERM", () => shutdown("SIGTERM"))
-process.on("SIGINT", () => shutdown("SIGINT"))
-
-process.on("uncaughtException", (err) => {
-    console.error("Uncaught Exception:", err)
+bootstrap().catch((err) => {
+    process.stderr.write(`[Server] failed to start: ${err.message}\n`)
     process.exit(1)
 })
 
+server.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code === "EADDRINUSE") {
+        process.stderr.write(`[Server] port ${SYSTEM.port} is already in use\n`)
+    } else {
+        process.stderr.write(`[Server] error: ${error.message}\n`)
+    }
+    process.exit(1)
+})
+
+process.on("SIGTERM", () => shutdown("SIGTERM"))
+process.on("SIGINT", () => shutdown("SIGINT"))
+process.on("uncaughtException", (err) => {
+    process.stderr.write(`[Server] uncaught exception: ${err.message}\n`)
+    process.exit(1)
+})
 process.on("unhandledRejection", (reason) => {
-    console.error("Unhandled Rejection:", reason)
+    process.stderr.write(`[Server] unhandled rejection: ${reason}\n`)
     process.exit(1)
 })

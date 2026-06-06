@@ -8,6 +8,7 @@ export enum STATUS_CODES {
       UN_AUTHORIZED = 401 ,
       FORBIDDEN = 403 ,
       NOT_FOUND = 404 ,
+      TOO_MANY_REQUESTS = 429 ,
 
       INTERNAL_SERVER_ERROR = 500 
 }

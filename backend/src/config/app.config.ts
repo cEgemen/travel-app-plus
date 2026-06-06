@@ -21,5 +21,6 @@ export const JWT = {
 }
 
 export const REDIS = {
-    sessionTTL : process.env.SESSION_TTL || 7 * 24 * 60 * 60 * 1000 + (2*60*1000)
+    url: isProd ? requireEnv("REDIS_URL") : (process.env.REDIS_URL ?? "redis://localhost:6379"),
+    sessionTTL: Number(process.env.SESSION_TTL) || 7 * 24 * 60 * 60 * 1000 + (2 * 60 * 1000),
 }
