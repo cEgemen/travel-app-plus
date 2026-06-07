@@ -67,7 +67,6 @@ export const refreshController = async (req: Request, res: Response) => {
          }
          return apiResponse(req,res,{data:null,message:"Internal Server Error",statusCode:STATUS_CODES.INTERNAL_SERVER_ERROR})
     }
-
 }
 
 export const meController = (req: Request, res: Response) => {

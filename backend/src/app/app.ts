@@ -4,7 +4,9 @@ import cors from "cors"
 import { apiResponse } from "@shared/responses/api.response"
 import { ApiError, STATUS_CODES } from "@shared/errors/api.errors"
 import { securePath } from "@shared/middlewares/securePath.middleware"
-import authRouter from "@modules/auth/auth.route"
+import {authRouter,authEndpoint} from "@modules/auth/auth.route"
+import {userRouter,userEndpoint} from "@modules/users/user.route"
+import { extractUser } from "@shared/middlewares/permission.middleware"
 
 const app = express()
 
@@ -18,6 +20,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended : true}))
 
 app.use(securePath(["health"]))
+app.use(extractUser)
 
 app.get("/health",(req,res,next) => {
     return res.status(200).json({
@@ -26,7 +29,8 @@ app.get("/health",(req,res,next) => {
     })
 })
 
-app.use("/api/auth",authRouter)
+app.use(authEndpoint,authRouter)
+app.use(userEndpoint,userRouter)
 
 app.use((req : Request,res : Response,next : NextFunction) => {
     return apiResponse(req,res,{

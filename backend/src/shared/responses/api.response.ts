@@ -6,7 +6,7 @@ import { errorResponse } from "./error.response";
 type RESPONSE = {
     statusCode : STATUS_CODES
     message : string
-    data : any | null
+    data? : any
 }
 
 export const apiResponse = (req : Request,res : Response,payload : RESPONSE) => {

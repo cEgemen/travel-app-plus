@@ -6,18 +6,78 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Enums ────────────────────────────────────────────────
+
+enum RoleType {
+  ADMIN
+  STANDARD
+  PREMIUM
+}
+
+enum VerificationType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  TWO_FACTOR
+}
+
+enum VerificationChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+// ─── Models ───────────────────────────────────────────────
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        RoleType @unique
+  description String?
+  createdDate DateTime @default(now())
+  updatedDate DateTime @updatedAt
+  users       User[]
+
+  @@map("roles")
+}
+
 model User {
-  id            String    @id @default(uuid())
+  id            Int       @id @default(autoincrement())
   username      String
   email         String    @unique
   password      String
   accountActive Boolean   @default(false)
   isLogin       Boolean   @default(false)
-  verifyCode    String?
   lastLogin     DateTime?
   createdDate   DateTime  @default(now())
   updatedDate   DateTime  @updatedAt
 
+  // Role relation
+  roleId        Int
+  role          Role     @relation(fields: [roleId], references: [id])
+
+  // Verification codes
+  verificationCodes VerificationCode[]
+
   @@index([username])
+  @@index([roleId])
   @@map("users")
+}
+
+model VerificationCode {
+  id        Int                 @id @default(autoincrement())
+  code      String
+  type      VerificationType
+  channel   VerificationChannel @default(EMAIL)
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int                 @default(0)
+  maxAttempts Int               @default(5)
+  createdDate DateTime          @default(now())
+
+  // User relation
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([code, type])
+  @@map("verification_codes")
 }

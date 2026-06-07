@@ -3,6 +3,7 @@ import {singInController,signUpController,signOutController,refreshController,me
 import { validater } from "@shared/middlewares/validate.middlewate";
 import { signInSchema, signUpSchema } from "./auth.schemas";
 
+const authEndpoint = "/api/auth"
 const router = Router()
 
 router.post("/sign-up",validater({schemas:{
@@ -15,4 +16,7 @@ router.get("/sign-out",signOutController)
 router.post("/refresh",refreshController)
 router.get("/me",meController)
 
-export default router
+export {
+    router as authRouter,
+    authEndpoint
+}
