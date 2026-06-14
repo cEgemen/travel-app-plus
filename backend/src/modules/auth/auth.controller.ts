@@ -1,92 +1,81 @@
 import { Request, Response } from "express";
-import { signInService, signUpService , meService , signOutService , refreshService} from "./auth.service";
-import { verifyRefreshToken, verifyToken } from "./auth.utils";
+import { signInService, signUpService, meService, signOutService, refreshService } from "./auth.service";
 import { ApiError } from "@shared/errors/api.errors";
 import { apiResponse } from "@shared/responses/api.response";
 import { STATUS_CODES } from "@shared/errors/api.errors";
 
-export const singInController = async (req: Request, res: Response) => {
+export const signInController = async (req: Request, res: Response) => {
     try {
-        const userSignInData = req.body
-
+        const userSignInData = req.body 
         const result = await signInService(userSignInData)
-
-        return res.status(200).json({status:200,message:"User Signedin Successfully",success:true})
+        return apiResponse(req, res, { data:result,
+            message: "User Signedin Successfully",
+            statusCode: STATUS_CODES.SUCCESS
+        })
     } catch (error) {
-        console.log(" in signIn ->error ",error)
-        return  res.status(500).json({status:500,message:"Internal Server Error",success:false})
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { message: error.message, statusCode: error.statusCode })
+        }
+        return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
     }
 }
 
-export const signUpController = async(req: Request, res: Response) => {
+export const signUpController = async (req: Request, res: Response) => {
     try {
-        
+
         const userSignUpData = req.body
 
         const result = await signUpService(userSignUpData)
-        
-        return apiResponse(req,res,{data:{},message:"User Signedup Successfully",statusCode:STATUS_CODES.SUCCESS})
+         
+        return apiResponse(req, res, { data: result, message: "User Signedup Successfully", statusCode: STATUS_CODES.SUCCESS })
     } catch (error) {
-        if(error instanceof ApiError)
-        {
-           return apiResponse(req,res,{data:null,message:error.message,statusCode:error.statusCode})
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { message: error.message, statusCode: error.statusCode })
         }
-        return apiResponse(req,res,{data:null,message:"Internal Server Error",statusCode:STATUS_CODES.INTERNAL_SERVER_ERROR})
+        return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
     }
 }
 
-export const signOutController =async (req: Request, res: Response) => {
-   try {
-         /* const tokenPayload = req.tokenPayload
-      await signOutService(tokenPayload) */
-      return apiResponse(req,res,{data:{},message:"User Signedout Successfully",statusCode:STATUS_CODES.SUCCESS})
-   } catch (error) {
-    console.log(" in signOut ->error ",error)
-    if(error instanceof ApiError)
-    {
-       return apiResponse(req,res,{data:null,message:error.message,statusCode:error.statusCode})
+export const signOutController = async (req: Request, res: Response) => {
+    try {
+        const data = req.body
+        const user = req.user as any
+        await signOutService(user?.id as number,user?.sessionId || ""  , data.refreshToken as string)
+        return apiResponse(req, res, { message: "User Signedout Successfully", statusCode: STATUS_CODES.SUCCESS })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { data: null, message: error.message, statusCode: error.statusCode })
+        }
+        return apiResponse(req, res, { data: null, message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
     }
-    return apiResponse(req,res,{data:null,message:"Internal Server Error",statusCode:STATUS_CODES.INTERNAL_SERVER_ERROR})
-   }
 }
-
+ 
 
 export const refreshController = async (req: Request, res: Response) => {
     try {
-         const refreshToken = req.body.refreshToken
-         /* 
-             await refreshService(isValidRefreshToken)       
-        */
-       return apiResponse(req,res,{data:{},message:"Refresh Token Verified Successfully",statusCode:STATUS_CODES.SUCCESS})
+        const refreshToken = req.refreshToken as string
+        const { accessToken, refreshToken: newRefreshToken } = await refreshService(refreshToken)
+
+        return apiResponse(req, res, { data: { accessToken, refreshToken: newRefreshToken }, message: "Refresh Token Verified Successfully", statusCode: STATUS_CODES.SUCCESS })
 
     } catch (error) {
-         console.log(" in refresh ->error ",error)
-         if(error instanceof ApiError)
-         {
-            return apiResponse(req,res,{data:null,message:error.message,statusCode:error.statusCode})
-         }
-         return apiResponse(req,res,{data:null,message:"Internal Server Error",statusCode:STATUS_CODES.INTERNAL_SERVER_ERROR})
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { data: null, message: error.message, statusCode: error.statusCode })
+        }
+        return apiResponse(req, res, { data: null, message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
     }
 }
 
-export const meController = (req: Request, res: Response) => {
-      try {
-        
-        /* 
-           const userPayload = req.user
-           const result = meService(userPayload)
-           if(!result)
-             return res.status(404).json({status:404,message:"User Not Found",success:false}) 
-        */
+export const meController = async (req: Request, res: Response) => {
+    try {
+        const userPayload = req.user as any
+        const result = await meService(userPayload)
+        return apiResponse(req, res, { data: result, message: "User Info Fetched Successfully", statusCode: STATUS_CODES.SUCCESS })
 
-        return apiResponse(req,res,{data:{},message:"User Info Fetched Successfully",statusCode:STATUS_CODES.SUCCESS})  
-
-      } catch (error) {
-        console.log(" in me ->error ",error)
-        if(error instanceof ApiError)
-        {
-           return apiResponse(req,res,{data:null,message:error.message,statusCode:error.statusCode})
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { message: error.message, statusCode: error.statusCode })
         }
-        return apiResponse(req,res,{data:null,message:"Internal Server Error",statusCode:STATUS_CODES.INTERNAL_SERVER_ERROR})
-      }
-}
+        return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
+    }
+} 

@@ -20,7 +20,7 @@ export const generateRefreshToken = (user : any) => {
     })
 }
 
-export const verifyAccessToken = (token : string) => {
+export const verifyAccessToken = (token : string) : any | null  => {
     try {
      return verify(token,JWT.accessSecret)   
     } catch (error) {
@@ -29,7 +29,7 @@ export const verifyAccessToken = (token : string) => {
     
 }
 
-export const verifyRefreshToken = (token : string) => {
+export const verifyRefreshToken = (token : string) : any | null  => {
     try {
      return verify(token,JWT.refreshSecret)   
     } catch (error) {

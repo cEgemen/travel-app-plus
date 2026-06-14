@@ -1,20 +1,28 @@
-import { Router} from "express";
-import {singInController,signUpController,signOutController,refreshController,meController} from "@modules/auth/auth.controller"
+import { Router } from "express";
+import { signInController, signUpController, signOutController, refreshController, meController } from "@modules/auth/auth.controller"
 import { validater } from "@shared/middlewares/validate.middlewate";
-import { signInSchema, signUpSchema } from "./auth.schemas";
+import { SIGN_IN_DTO, SIGN_UP_DTO,SIGN_OUT_DTO } from "./auth.schemas";
 
 const authEndpoint = "/api/auth"
 const router = Router()
 
-router.post("/sign-up",validater({schemas:{
-    body:signUpSchema
-},sourceType:["body"]}),signUpController)
-router.post("/sign-in",validater({schemas:{
-    body:signInSchema
-},sourceType:["body"]}),singInController)
-router.get("/sign-out",signOutController)
-router.post("/refresh",refreshController)
-router.get("/me",meController)
+router.post("/sign-up", validater({
+    schemas: {
+        body: SIGN_UP_DTO
+    }, sourceType: ["body"]
+}), signUpController)
+router.post("/sign-in", validater({
+    schemas: {
+        body: SIGN_IN_DTO
+    }, sourceType: ["body"]
+}), signInController)
+router.post("/sign-out", validater({
+    schemas: {
+        body: SIGN_OUT_DTO
+    }, sourceType: ["body"]
+}), signOutController)
+router.get("/refresh", refreshController)
+router.get("/me", meController)
 
 export {
     router as authRouter,

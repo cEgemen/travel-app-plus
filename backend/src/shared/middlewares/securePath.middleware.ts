@@ -11,11 +11,11 @@ const isStartWithApi = (path: string, allowedModules: string[]) => {
     const splitPaths = path.split('/').filter(Boolean)
 
     if (allowedModules.length > 0) {
-        if (allowedModules.includes(splitPaths[1]))
+        if (allowedModules.includes(path))
             return true
     }
 
-    if (splitPaths[1] !== "api")
+    if (splitPaths[0] !== "api")
         return false
 
     return true
@@ -50,10 +50,8 @@ const hasDangerousChars = (decodedPath: string): boolean => {
 export const securePath = (allowedModules: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         const rawPath = req.path
-
         if (rawPath.length > MAX_PATH_LENGTH)
             return next(new ApiError("Invalid Path", STATUS_CODES.BAD_REQUEST))
-
         if (!isStartWithApi(rawPath, allowedModules))
             return next(new ApiError("Invalid Path", STATUS_CODES.BAD_REQUEST))
 

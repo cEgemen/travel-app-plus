@@ -19,7 +19,7 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({extended : true}))
 
-app.use(securePath(["health"]))
+app.use(securePath(["/health"]))
 app.use(extractUser)
 
 app.get("/health",(req,res,next) => {
@@ -34,14 +34,19 @@ app.use(userEndpoint,userRouter)
 
 app.use((req : Request,res : Response,next : NextFunction) => {
     return apiResponse(req,res,{
+         statusCode : STATUS_CODES.NOT_FOUND,
+         message : "Not Found"
+    })
+})
+
+app.use((req : Request,res : Response,next : NextFunction) => {
+    return apiResponse(req,res,{
          statusCode : STATUS_CODES.SUCCESS,
          message : "Project Is Live",
          data : {
              health : "ok",
              processTime : process.uptime(),
-             platform : process.platform,
-             memoryUsage : process.memoryUsage(),
-             cpuUsage : process.cpuUsage(),
+             platform : process.platform
          }
     })
 })

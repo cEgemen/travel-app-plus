@@ -49,6 +49,7 @@ model User {
   lastLogin     DateTime?
   createdDate   DateTime  @default(now())
   updatedDate   DateTime  @updatedAt
+  sessionId     String?   @unique
 
   // Role relation
   roleId        Int
