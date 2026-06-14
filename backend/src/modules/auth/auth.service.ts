@@ -7,6 +7,7 @@ import { SIGN_IN_DTO, SIGN_UP_DTO } from "./auth.schemas"
 import { prisma } from "@config/db.config"
 import redis from "@config/redis.config"
 import { JWT, REDIS } from "@config/app.config"
+import { generateOTP } from "@modules/verificationCode/verification.utils"
 
 export const signUpService = async (data: SIGN_UP_DTO) => {
    try {
@@ -58,6 +59,13 @@ export const signInService = async (data: SIGN_IN_DTO) => {
       })
       await redis.set("w-" + sessionId + ':' + refreshToken, refreshToken, "EX", REDIS.sessionTTL)
       await redis.set("session:" + sessionId, JSON.stringify({ refreshToken, user: { id: isExist.id, username: isExist.username, email: isExist.email, password: isExist.password, roleId: isExist.roleId } }), "EX", JWT.refreshExpiresIn)
+
+      if(!isExist.accountActive){
+         const otp = generateOTP()
+         console.log("||sign-in|| otp : ", otp)
+         // EMAIL SEND LOGIC WILL BE HERE 
+      }
+
       return {
          user: { username: isExist.username, email: isExist.email, role: isExist.roleId === 1 ? "ADMIN" : isExist.roleId === 2 ? "STANDARD" : "PREMIUM" },
          accessToken,
