@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {validateAccountActivationController,generateAccountActivationController} from "./verification.controller"
+import {validateAccountActivationController,generateAccountActivationController, verifyOTPController} from "./verification.controller"
 
 const verificationEndpoint = "/api/verify"
 const router = Router()
@@ -9,6 +9,9 @@ const router = Router()
 router.post("/account-activation",validateAccountActivationController)
 
 router.get("/account-activation",generateAccountActivationController)
+
+//allow parth
+router.post("/verify-otp",verifyOTPController)
 
 export { router, verificationEndpoint }
  

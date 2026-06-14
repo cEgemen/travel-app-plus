@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { signInService, signUpService, meService, signOutService, refreshService } from "./auth.service";
+import { signInService, signUpService, meService, signOutService, refreshService, forgetPasswordService, resetPasswordService } from "./auth.service";
 import { ApiError } from "@shared/errors/api.errors";
 import { apiResponse } from "@shared/responses/api.response";
 import { STATUS_CODES } from "@shared/errors/api.errors";
@@ -79,3 +79,31 @@ export const meController = async (req: Request, res: Response) => {
         return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
     }
 } 
+
+export const forgetPasswordController = async (req : Request , res : Response ) => {
+    try{
+        const {email} = req.body
+        const forgetToken = await forgetPasswordService(email as string)
+        return apiResponse(req, res, { data: forgetToken, message: "Code sent to your email Successfully", statusCode: STATUS_CODES.SUCCESS })
+    }
+    catch(error){
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { message: error.message, statusCode: error.statusCode })
+        }
+        return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
+    }
+}
+
+export const resetPasswordController = async (req : Request , res : Response ) => {
+    try{
+        const {token,password} = req.body
+        await resetPasswordService(token as string,password as string)
+        return apiResponse(req, res, { message: "Password Reset Successfully", statusCode: STATUS_CODES.SUCCESS })
+    }
+    catch(error){
+        if (error instanceof ApiError) {
+            return apiResponse(req, res, { message: error.message, statusCode: error.statusCode })
+        }
+        return apiResponse(req, res, { message: "Internal Server Error", statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR })
+    }
+}

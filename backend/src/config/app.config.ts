@@ -18,6 +18,8 @@ export const JWT = {
     accessExpiresIn: (process.env.ACCESS_EXPIRES_IN ?? 1000 * 60 * 30) as number,
     refreshSecret: isProd ? requireEnv("REFRESH_SECRET") : (process.env.REFRESH_SECRET ?? "dev-refresh-secret"),
     refreshExpiresIn: (process.env.REFRESH_EXPIRES_IN ?? 1000 * 60 * 60 * 24 * 7) as number,
+    forgetSecret: isProd ? requireEnv("FORGET_SECRET") : (process.env.FORGET_SECRET ?? "dev-forget-secret"),
+    forgetExpiresIn: (process.env.FORGET_EXPIRES_IN ?? 1000 * 60 * 8) as number,
 }
 
 export const REDIS = {

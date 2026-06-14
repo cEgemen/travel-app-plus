@@ -3,19 +3,14 @@ import { ApiError, STATUS_CODES } from "@shared/errors/api.errors"
 import { generateOTP } from "./verification.utils"
 
   
-const validateAccountActivationService = async (userId:string,code:string)=>{
-    const type = "EMAIL_VERIFY"
-    const channel = "EMAIL"
-    await verifyOTPService({userId:Number(userId),code,type,channel})  
+const validateAccountActivationService = async ({userId,type,channel,code} : VERIFY_OTP_DTO)=>{
+    await verifyOTPService({userId:userId,code,type : type || "EMAIL_VERIFY",channel : channel || "EMAIL" })  
 }
 
-const generateAccountActivationService = async (userId : string)=>{
-    const type = "EMAIL_VERIFY"
-    const channel = "EMAIL"
-    
+const generateAccountActivationService = async ({id,type,channel} : GENERATE_ACCOUNT_ACTIVATION_DTO)=>{
     const otp = generateOTP()
     await saveOTPService({
-        channel,type,code:otp,userId:Number(userId)
+        channel : channel || "EMAIL" ,type:type || "EMAIL_VERIFY",code:otp,userId:id
     })
     return otp
 }
@@ -106,5 +101,6 @@ const verifyOTPService = async (data : VERIFY_OTP_DTO) => {
 
 export {
     validateAccountActivationService,
-    generateAccountActivationService
+    generateAccountActivationService,
+    verifyOTPService
 }

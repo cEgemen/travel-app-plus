@@ -1,5 +1,5 @@
 import { genSalt, hash, compare } from "bcryptjs"
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "@modules/auth/auth.utils"
+import { generateAccessToken, generateForgetToken, generateRefreshToken, verifyForgetToken, verifyRefreshToken } from "@modules/auth/auth.utils"
 import { randomUUID } from "crypto"
 import { ApiError, STATUS_CODES } from "@shared/errors/api.errors"
 import { isUserExistByEmail, isUserExistById } from "@modules/users/user.util"
@@ -8,6 +8,7 @@ import { prisma } from "@config/db.config"
 import redis from "@config/redis.config"
 import { JWT, REDIS } from "@config/app.config"
 import { generateOTP } from "@modules/verificationCode/verification.utils"
+import { generateAccountActivationService } from "@modules/verificationCode/verification.service"
 
 export const signUpService = async (data: SIGN_UP_DTO) => {
    try {
@@ -61,7 +62,7 @@ export const signInService = async (data: SIGN_IN_DTO) => {
       await redis.set("session:" + sessionId, JSON.stringify({ refreshToken, user: { id: isExist.id, username: isExist.username, email: isExist.email, password: isExist.password, roleId: isExist.roleId } }), "EX", JWT.refreshExpiresIn)
 
       if(!isExist.accountActive){
-         const otp = generateOTP()
+         const otp = await generateAccountActivationService({id:Number(isExist.id)})
          console.log("||sign-in|| otp : ", otp)
          // EMAIL SEND LOGIC WILL BE HERE 
       }
@@ -160,6 +161,50 @@ export const meService = async (data: any) => {
          throw new ApiError("User Not Found", STATUS_CODES.NOT_FOUND)
       const coverData = {...isExist,password : "******"}
       return coverData
+   } catch (error) {
+      if (error instanceof ApiError)
+         throw error
+      throw new ApiError("Internal Server Error", STATUS_CODES.INTERNAL_SERVER_ERROR)
+   }
+}
+
+export const forgetPasswordService = async (email : string) => {
+   try {
+      const isExist = await isUserExistByEmail(email)
+      if (!isExist)
+         throw new ApiError("User Not Found", STATUS_CODES.NOT_FOUND)
+      const otp = await generateAccountActivationService({id:Number(isExist.id),channel:"EMAIL",type:"PASSWORD_RESET"})
+      console.log("||forgetPassword|| otp : ", otp)
+      // EMAIL SEND LOGIC WILL BE HERE
+      const forgetToken = generateForgetToken(isExist)
+      return forgetToken
+   } catch (error) {
+      if (error instanceof ApiError)
+         throw error
+      throw new ApiError("Internal Server Error", STATUS_CODES.INTERNAL_SERVER_ERROR)
+   }
+}
+
+export const resetPasswordService = async (token : string , password : string) => {
+   try {
+      const isValidToken = verifyForgetToken(token)
+      if (!isValidToken)
+         throw new ApiError("Invalid Token", STATUS_CODES.BAD_REQUEST)
+      const {exp,iat,...userPayload} = isValidToken as any
+      const isExist = await isUserExistById(userPayload.id)  
+      if (!isExist)
+         throw new ApiError("User Not Found", STATUS_CODES.NOT_FOUND)
+      const salt = await genSalt(10)
+      const hashedPassword = await hash(password, salt)
+      await prisma.user.update({
+         where: {
+            id: userPayload.id
+         },
+         data: {
+            password: hashedPassword
+         }
+      })
+      return { message: "Password Reset Successfully" }
    } catch (error) {
       if (error instanceof ApiError)
          throw error

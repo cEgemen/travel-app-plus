@@ -20,6 +20,25 @@ export const generateRefreshToken = (user : any) => {
     })
 }
 
+
+export const generateForgetToken = (user : any) => {
+    return sign({...user},JWT.forgetSecret,{
+        expiresIn : JWT.forgetExpiresIn,
+        algorithm : "HS512"
+    })
+}
+
+
+export const verifyForgetToken = (token : string) : any | null  => {
+    try {
+     return verify(token,JWT.forgetSecret)   
+    } catch (error) {
+      return null  
+    }
+    
+}
+
+
 export const verifyAccessToken = (token : string) : any | null  => {
     try {
      return verify(token,JWT.accessSecret)   
